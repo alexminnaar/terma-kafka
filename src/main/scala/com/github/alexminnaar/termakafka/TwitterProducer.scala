@@ -13,7 +13,7 @@ object TwitterProducer extends App {
   val accessToken = args(2)
   val accessSecret = args(3)
   val kafkaTweetTopic = args(4)
-  
+
   //configure kafka producer client
   val props = new Properties()
 
