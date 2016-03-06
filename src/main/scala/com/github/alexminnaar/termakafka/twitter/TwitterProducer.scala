@@ -1,4 +1,4 @@
-package com.github.alexminnaar.termakafka
+package com.github.alexminnaar.termakafka.twitter
 
 import java.util.Properties
 

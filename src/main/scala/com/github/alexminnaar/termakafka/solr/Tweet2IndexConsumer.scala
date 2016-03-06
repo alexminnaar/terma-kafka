@@ -1,19 +1,19 @@
-package com.github.alexminnaar.termakafka
+package com.github.alexminnaar.termakafka.solr
 
 import java.util
 import java.util.Properties
-import kafka.consumer.ConsumerConfig
 import scala.collection.JavaConversions._
+import kafka.consumer.ConsumerConfig
 
 /**
-  * Consume from any kafka topic.  Used for debugging purposes i.e. is what is supposed to be publishing really
-  * publishing?
+  * consume tweets from the kafka message bus and index them into solr
   */
-object GeneralConsumer extends App {
+object Tweet2IndexConsumer extends App {
 
   val zookeeper = args(0)
   val groupId = args(1)
   val topic = args(2)
+  val solrHost = args(3)
 
   def createConsumerConfig(zookeeper: String, groupId: String): ConsumerConfig = {
 
@@ -27,24 +27,35 @@ object GeneralConsumer extends App {
     new ConsumerConfig(props)
   }
 
-  val consumer = kafka.consumer.Consumer.createJavaConsumerConnector(createConsumerConfig(zookeeper, groupId))
+  val consumer = kafka
+    .consumer
+    .Consumer
+    .createJavaConsumerConnector(
+      createConsumerConfig(zookeeper, groupId)
+    )
+
+  //number of threads to assign to each topic
   val topicMap: java.util.Map[String, Integer] = new util.HashMap[String, Integer]()
 
+  //assign one thread to this topic
   topicMap.put(topic, new Integer(1))
 
   val consumerStreamsMap = consumer.createMessageStreams(topicMap)
-
   val streamList = consumerStreamsMap.get(topic)
 
   for (stream <- streamList) {
 
     val consumerIter = stream.iterator()
 
+    //index messages from topic into solr
     while (consumerIter.hasNext()) {
-      println("Message from single topic ::" + new String(consumerIter.next().message()))
+      val tweet = SimpleTweet(new String(consumerIter.next().message()))
+      SolrIndexer.indexTweet(tweet,solrHost)
+      println(s"Tweet indexed at [${System.currentTimeMillis()}]")
     }
 
     if (consumer != null) consumer.shutdown()
   }
+
 
 }

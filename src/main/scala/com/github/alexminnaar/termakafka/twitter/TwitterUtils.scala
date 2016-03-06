@@ -1,5 +1,4 @@
-package com.github.alexminnaar.termakafka
-
+package com.github.alexminnaar.termakafka.twitter
 
 import kafka.javaapi.producer.Producer
 import kafka.producer.KeyedMessage
